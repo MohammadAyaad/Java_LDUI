@@ -1,6 +1,5 @@
 package Core.Math.Geometry;
 
-import Core.Components.BaseComponent.StructureComponent.StructureComponent;
 import Core.Math.Points.Point2i;
 
 public class Rectangle2Di {

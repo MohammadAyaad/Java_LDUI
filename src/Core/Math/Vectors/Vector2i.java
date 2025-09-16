@@ -1,8 +1,8 @@
 package Core.Math.Vectors;
 
 public class Vector2i {
-        int x;
-        int y;
+        public int x;
+        public int y;
         public Vector2i()
         {
                 x = 0;
@@ -60,7 +60,7 @@ public class Vector2i {
         }
         public double len(Vector2i vector)
         {
-                return Math.sqrt(((this.x * this.x) - (vector.x * vector.x)) + ((this.y * this.y) - (vector.y * vector.y)));
+                return Math.sqrt(((this.x - vector.x) * (this.x - vector.x)) + ((this.y - vector.y) * (this.y - vector.y)));
         }
         public double det()
         {

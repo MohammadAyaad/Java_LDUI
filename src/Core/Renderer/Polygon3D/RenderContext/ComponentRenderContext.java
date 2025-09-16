@@ -7,10 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import Core.Components.Component;
+import Core.Components.BaseComponent;
 import Core.Components.InitStatus;
-import Core.Components.BaseComponent.StructureComponent.StructureComponent;
-import Core.Components.BaseComponent.StructureComponent.VisualComponent.VisualComponent;
 import Core.Math.Geometry.Rectangle2Di;
 import Core.Math.Points.Point2i;
 import Core.Window.Window;
@@ -18,99 +16,12 @@ import Core.Math.Matrices.Matrix4;
 
 public class ComponentRenderContext
 {
-	private Component base;
+	private BaseComponent base;
 	public ComponentRenderContext(Window window)
 	{
-		base = new Component(new Point2i(), new Point2i(window.WIDTH,window.HEIGHT))
-				{
-
-					@Override
-					public void mouseDragged(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseMoved(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseExited(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mousePressed(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void mouseReleased(MouseEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void focusGained(FocusEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void focusLost(FocusEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void keyPressed(KeyEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void keyReleased(KeyEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void keyTyped(KeyEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void paintTarget(Rectangle2Di rectangle) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public InitStatus initialize() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-			
-				};
-			window.GetInput().listeners.add(base);
+		
 	}
+	
 	/*
 
 private float[] m_zBuffer;

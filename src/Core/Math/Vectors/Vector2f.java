@@ -69,9 +69,9 @@ public class Vector2f {
         }
         public double len(Vector2f vector)
         {
-                return Math.sqrt(((this.x * this.x) - (vector.x * vector.x)) + ((this.y * this.y) - (vector.y * vector.y)));
+                return Math.sqrt(((this.x - vector.x) * (this.x - vector.x)) + ((this.y - vector.y) * (this.y - vector.y)));
         }
-        public double det()
+        public double length()
         {
                 return Math.sqrt((this.x * this.x) + (this.y * this.y));
         }
@@ -81,7 +81,7 @@ public class Vector2f {
         }
         public Vector2f Normalize()
         {
-        	this.div((float)this.det());
+        	this.div((float)this.length());
         	return this;
         }
         public Vector2f rotate(float angle)
@@ -93,11 +93,24 @@ public class Vector2f {
         }
         public double getAngleCos()
         {
-                return this.x/this.det();
+                return this.x/this.length();
         }
-        public double GetAngleWithVector(Vector2f vector)
-        {
-                return ((this.dot(vector)/this.det())/vector.det());
+        public double getAngleWithVector(Vector2f vector) {
+            double dot = this.dot(vector);
+            double magA = this.length(); // or your det()
+            double magB = vector.length(); // or vector.det()
+
+            if (magA == 0 || magB == 0) return 0; // avoid divide by zero
+
+            double cosTheta = dot / (magA * magB);
+
+            // Clamp to avoid NaN from precision errors
+            cosTheta = Math.max(-1.0, Math.min(1.0, cosTheta));
+
+            return Math.acos(cosTheta); // in radians
+        }
+        public double Cross(Vector2f vector) {
+        	return this.x * vector.y - this.y * vector.x;
         }
 
         @Override

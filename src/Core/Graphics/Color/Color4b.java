@@ -26,6 +26,12 @@ public class Color4b {
 		this.blue = blue;
 		this.alpha = alpha;
 	}
+	public boolean EqualsColor(Color4b color) {
+		return (this.alpha == color.alpha) &&
+				(this.red == color.red) &&
+				(this.green == color.green) &&
+				(this.blue == color.blue);
+	}
 	public static final Color4b WHITE = new Color4b((byte)255,(byte)255,(byte)255,(byte)255);
 	public static final Color4b BLUE = new Color4b((byte)255,(byte)0,(byte)0,(byte)255);
 	public static final Color4b RED = new Color4b((byte)255,(byte)255,(byte)0,(byte)0);

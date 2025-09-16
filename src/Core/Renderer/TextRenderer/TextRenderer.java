@@ -12,31 +12,86 @@ import javax.imageio.ImageIO;
 import Core.Render.Bitmaps.BitmapARGB;
 
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
 public class TextRenderer {
     
-	public static void DrawText(String str,Color fontColor,BitmapARGB bitmap)
+	public static void DrawText(String str,Font font,Color fontColor,Color background,BitmapARGB bitmap)
 	{
 		BufferedImage img = new BufferedImage(bitmap.getWidth(),bitmap.getHeight(),BufferedImage.TYPE_INT_ARGB);
 		
 		Graphics2D graphics = img.createGraphics();
 		
-		Font font = new Font("Consolas",Font.BOLD,40);
-		
-		graphics.setBackground(Color.red);
+		graphics.setBackground(background);
 		graphics.setColor(fontColor);  
 		graphics.setFont(font);
 		//graphics.clearRect(0, 0, img.getWidth(), img.getHeight());
-		
-		graphics.drawString(str, 0, 208);
+		FontMetrics metrics = graphics.getFontMetrics(font);
+        int ascent = metrics.getAscent();
+        
+		graphics.drawString(str, 0, ascent);
 		
 		graphics.dispose();
 		
 		bitmap.DrawBufferedImage(0, 0, img);
 		
+	}public static BitmapARGB GenerateText(String str, Font font, Color fontColor, Color background, int dpi) {
+	    // Create a temporary image to calculate font metrics
+	    BufferedImage tempImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+	    Graphics2D g2d = tempImage.createGraphics();
+	    
+	    // Set up proper DPI scaling for font metrics calculation
+	    g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+	    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	    
+	    // Create a scaled font for the target DPI
+	    float scaleFactor = dpi / 72.0f;
+	    Font scaledFont = font.deriveFont(font.getSize2D() * scaleFactor);
+	    g2d.setFont(scaledFont);
+	    
+	    // Get font metrics with the scaled font
+	    FontMetrics metrics = g2d.getFontMetrics();
+	    int textWidth = metrics.stringWidth(str);
+	    int textHeight = metrics.getHeight();
+	    
+	    // Add some padding to avoid clipping (especially for descenders)
+	    int padding = (int) (metrics.getDescent() * 0.5f);
+	    int totalWidth = textWidth + padding * 2;
+	    int totalHeight = textHeight + padding * 2;
+	    
+	    g2d.dispose();
+	    
+	    // Create the final image with proper dimensions
+	    BufferedImage image = new BufferedImage(totalWidth, totalHeight, BufferedImage.TYPE_INT_ARGB);
+	    g2d = image.createGraphics();
+	    
+	    // Set rendering hints for better quality
+	    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	    g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+	    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+	    
+	    // Fill the background
+	    g2d.setColor(background);
+	    g2d.fillRect(0, 0, totalWidth, totalHeight);
+	    
+	    // Set the font and color
+	    g2d.setFont(scaledFont);
+	    g2d.setColor(fontColor);
+	    
+	    // Draw the text with proper positioning (accounting for padding and baseline)
+	    int x = padding;
+	    int y = padding + metrics.getAscent();  // Position at baseline with padding
+	    
+	    g2d.drawString(str, x, y);
+	    
+	    g2d.dispose();
+	    
+	    return new BitmapARGB(image);
 	}
+	
 	
     public static BufferedImage createImage(String inputString) throws IOException{
         

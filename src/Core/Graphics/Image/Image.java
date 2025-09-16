@@ -1,11 +1,14 @@
 package Core.Graphics.Image;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import Core.Graphics.Color.Color3b;
 import Core.Graphics.Color.Color4b;
+import Core.Math.Points.Point2i;
 import Core.Render.Bitmaps.BitmapARGB;
 import Core.Renderer.TextRenderer.TextRenderer;
 
@@ -39,10 +42,8 @@ public class Image {
 		
 	}
 	
-	public static Image fromText(String text)
+	public static Image fromText(String text,Color3b textColor,Color4b backgroundColor,Font font, int dpi)
 	{
-		BitmapARGB bitmap = new BitmapARGB(800,600);
-		TextRenderer.DrawText(text,Color.white, bitmap);
-		return new Image(bitmap);
+		return new Image(TextRenderer.GenerateText(text, font, new Color(textColor.red & 0xFF,textColor.green& 0xFF,textColor.blue& 0xFF), new Color(backgroundColor.red& 0xFF,backgroundColor.green& 0xFF,backgroundColor.blue& 0xFF,backgroundColor.alpha& 0xFF), dpi));
 	}
 }

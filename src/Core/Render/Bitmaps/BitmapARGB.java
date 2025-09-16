@@ -50,32 +50,28 @@ public class BitmapARGB {
 
 	public BitmapARGB(String fileName) throws IOException
 	{
-		int width = 0;
-		int height = 0;
-		byte[] components = null;
+	    BufferedImage image = ImageIO.read(new File(fileName));
+	    if (image == null) {
+	        throw new IOException("Failed to load image: " + fileName);
+	    }
 
-		BufferedImage image = ImageIO.read(new File(fileName));
+	    this.width = image.getWidth();
+	    this.height = image.getHeight();
+	    this.buffer = new byte[width * height * 4];
 
-		width = image.getWidth();
-		height = image.getHeight();
+	    int[] imgPixels = new int[width * height];
+	    image.getRGB(0, 0, width, height, imgPixels, 0, width);
 
-		int imgPixels[] = new int[width * height];
-		image.getRGB(0, 0, width, height, imgPixels, 0, width);
-		components = new byte[width * height * 4];
+	    for(int i = 0; i < width * height; i++)
+	    {
+	        int pixel = imgPixels[i];
 
-		for(int i = 0; i < width * height; i++)
-		{
-			int pixel = imgPixels[i];
-
-			components[i * 4]     = (byte)((pixel >> 24) & 0xFF); // A
-			components[i * 4 + 1] = (byte)((pixel      ) & 0xFF); // B
-			components[i * 4 + 2] = (byte)((pixel >> 8 ) & 0xFF); // G
-			components[i * 4 + 3] = (byte)((pixel >> 16) & 0xFF); // R
-		}
-
-		this.width = width;
-		this.height = height;
-		this.buffer = components;
+	        // Extract components in ARGB order to match your class structure
+	        buffer[i * 4]     = (byte)((pixel >> 24) & 0xFF); // Alpha
+	        buffer[i * 4 + 1] = (byte)((pixel >> 16) & 0xFF); // Red
+	        buffer[i * 4 + 2] = (byte)((pixel >> 8 ) & 0xFF); // Green
+	        buffer[i * 4 + 3] = (byte)((pixel      ) & 0xFF); // Blue
+	    }
 	}
 	
 	public BitmapARGB(BufferedImage image)
@@ -109,7 +105,7 @@ public class BitmapARGB {
 	public Color4b getPixel(int x,int y)
 	{
 		int index = (x + y * this.width) * 4;
-		return new Color4b(this.buffer[index + 3],this.buffer[index],this.buffer[index + 1],this.buffer[index + 2]);
+		return new Color4b(this.buffer[index],this.buffer[index + 1],this.buffer[index + 2],this.buffer[index + 3]);
 	}
 	public byte getPixelComponent(int x,int y, int component)
 	{
@@ -291,7 +287,80 @@ public class BitmapARGB {
     		}
     	}
 	}
+	public BitmapARGB Cut(int x, int y, int w, int h) {
+	    // Ensure the requested area is within the bounds of the source image
+	    int startX = Math.max(0, x);
+	    int startY = Math.max(0, y);
+	    int endX = Math.min(this.width, x + w);
+	    int endY = Math.min(this.height, y + h);
+	    
+	    // Calculate actual dimensions of the output image
+	    int outputWidth = endX - startX;
+	    int outputHeight = endY - startY;
+	    
+	    // Create the output bitmap
+	    BitmapARGB output = new BitmapARGB(outputWidth, outputHeight);
+	    
+	    // Copy the relevant pixels from the source to the output
+	    for (int destY = 0; destY < outputHeight; destY++) {
+	        for (int destX = 0; destX < outputWidth; destX++) {
+	            int srcX = startX + destX;
+	            int srcY = startY + destY;
+	            
+	            // Calculate indices in both source and destination buffers
+	            int srcIndex = (srcX + srcY * this.width) * 4;
+	            int destIndex = (destX + destY * outputWidth) * 4;
+	            
+	            // Copy all 4 components (ARGB)
+	            output.buffer[destIndex] = this.buffer[srcIndex];         // Alpha
+	            output.buffer[destIndex + 1] = this.buffer[srcIndex + 1]; // Blue
+	            output.buffer[destIndex + 2] = this.buffer[srcIndex + 2]; // Green
+	            output.buffer[destIndex + 3] = this.buffer[srcIndex + 3]; // Red
+	        }
+	    }
+	    
+	    return output;
+	}
 	
+	
+	/**
+	 * Simple scale function - no smoothing, no anti-aliasing, just pure scaling
+	 * @param scaleFactor The scaling factor (2.0 for 2x, 0.5 for half size)
+	 * @return A new scaled BitmapARGB instance
+	 */
+	public BitmapARGB scale(float scaleFactor) {
+	    if (scaleFactor <= 0) {
+	        throw new IllegalArgumentException("Scale factor must be positive");
+	    }
+	    
+	    int newWidth = Math.max(1, (int)(this.width * scaleFactor));
+	    int newHeight = Math.max(1, (int)(this.height * scaleFactor));
+	    
+	    BitmapARGB scaledBitmap = new BitmapARGB(newWidth, newHeight);
+	    
+	    for (int y = 0; y < newHeight; y++) {
+	        for (int x = 0; x < newWidth; x++) {
+	            // Simple direct mapping - no fancy math
+	            int srcX = (int)(x / scaleFactor);
+	            int srcY = (int)(y / scaleFactor);
+	            
+	            // Ensure we don't go out of bounds
+	            srcX = Math.min(srcX, this.width - 1);
+	            srcY = Math.min(srcY, this.height - 1);
+	            
+	            // Copy the pixel directly
+	            int srcIndex = (srcX + srcY * this.width) * 4;
+	            int destIndex = (x + y * newWidth) * 4;
+	            
+	            scaledBitmap.buffer[destIndex] = this.buffer[srcIndex];
+	            scaledBitmap.buffer[destIndex + 1] = this.buffer[srcIndex + 1];
+	            scaledBitmap.buffer[destIndex + 2] = this.buffer[srcIndex + 2];
+	            scaledBitmap.buffer[destIndex + 3] = this.buffer[srcIndex + 3];
+	        }
+	    }
+	    
+	    return scaledBitmap;
+	}
 	
 }
 

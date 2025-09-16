@@ -122,7 +122,30 @@ public class BitmapRGB {
 			dest[i * 3 + 2] = this.buffer[i * 3    ];
 		}
 	}
-	
+	public BufferedImage ToBufferedImage()
+	{
+		BufferedImage img = new BufferedImage(this.width, this.height,2/*TYPE_INT_ARGB*/);
+	      if(img == null)
+	    	  return null;
+	      for (int y = 0; y < img.getHeight(); y++) {
+	         for (int x = 0; x < img.getWidth(); x++) {
+	            //Retrieving contents of a pixel
+	            int pixel = 0;
+	            //Creating a Color object from pixel value
+	            int p = 0;
+	            
+	            pixel = 0xFF;
+	            pixel <<= 8;
+	            pixel += this.buffer[(x + (y * this.width)) * 3]& 0xFF;
+	            pixel <<= 8;
+	            pixel +=  this.buffer[(x + (y * this.width)) * 3 + 1] & 0xFF;
+	            pixel <<= 8;
+	            pixel += this.buffer[(x + (y * this.width)) * 3 + 2] & 0xFF;
+	            img.setRGB(x, y, pixel);
+	         }
+	      }
+	      return img;
+	}
 	public void Fill(byte red,byte green,byte blue)
 	{
 		for(int p = 0;p < this.width * this.height;p++)
@@ -225,9 +248,11 @@ public class BitmapRGB {
     		{
     			int index = (X + (Y * this.width)) * 3;
     			int tindex = (((X + bitmapextraX) - (x + bitmapextraX)) + (((Y + bitmapextraY) - (y + bitmapextraY)) * bitmap.width)) * 4;
-    			buffer[index    ] = bitmap.buffer[tindex + 1];
-    			buffer[index + 1] = bitmap.buffer[tindex + 2];
-    			buffer[index + 2] = bitmap.buffer[tindex + 3];
+
+				float alpha = (float)toUnsignedByte(bitmap.buffer[tindex]) / 255.0f;
+    			this.buffer[index    ] = (byte)(((float)toUnsignedByte(this.buffer[index    ]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[tindex + 1]) * alpha));
+    			this.buffer[index + 1] = (byte)(((float)toUnsignedByte(this.buffer[index + 1]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[tindex + 2]) * alpha));
+    			this.buffer[index + 2] = (byte)(((float)toUnsignedByte(this.buffer[index + 2]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[tindex + 3]) * alpha));
     			
     		}
     	}
@@ -376,9 +401,115 @@ public class BitmapRGB {
 			{
 				int dst_i = (dst_x + (dst_y * this.width)) * 3;
 				int src_i = (src_x + (src_y * bitmap.width)) * 4;
-				this.buffer[dst_i    ] = bitmap.buffer[src_i + 1];
-				this.buffer[dst_i + 1] = bitmap.buffer[src_i + 2];
-				this.buffer[dst_i + 2] = bitmap.buffer[src_i + 3];
+				float alpha = (float)toUnsignedByte(bitmap.buffer[src_i]) / 255.0f;
+    			this.buffer[dst_i    ] = (byte)(((float)toUnsignedByte(this.buffer[dst_i    ]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[src_i + 1]) * alpha));
+    			this.buffer[dst_i + 1] = (byte)(((float)toUnsignedByte(this.buffer[dst_i + 1]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[src_i + 2]) * alpha));
+    			this.buffer[dst_i + 2] = (byte)(((float)toUnsignedByte(this.buffer[dst_i + 2]) * (1.0f - alpha)) + ((float)toUnsignedByte(bitmap.buffer[src_i + 3]) * alpha));
+			}
+		}
+		
+		
+	}
+	private int toUnsignedByte(byte x) {
+		return x & 0xFF;
+	}
+	public void DrawBitmapInRegion(Point2i bitmap_position,Rectangle2Di rect,BitmapRGB bitmap)
+	{
+		//src/dst+start/end+x/y
+		int 
+		SSX = 0,
+		SSY = 0,
+		SEX = bitmap.width,
+		SEY = bitmap.height,
+		DSX = bitmap_position.x,
+		DSY = bitmap_position.y,
+		DEX = this.width,
+		DEY = this.height;
+		//trim to the region & the bounds
+		//check if something is outside the drawing area
+		//if the initial destenation position is outside this bitmap
+		if((((DSX > this.width || DSY > this.height) ||
+				(DEX < 0 || DEY < 0)) ||
+				//if the source position is outside the source bitmap
+				((SSX > bitmap.width || SSY > bitmap.height) ||
+				(SEX < 0 || SEY < 0))) ||
+				//if the destenation region is outside this bitmap
+				((DSX > (rect.getSize().x + rect.getPosition().x) || DSY > (rect.getSize().y + rect.getPosition().y)) ||
+				((DEX < rect.getPosition().x || DEY < rect.getPosition().y) ||
+						((bitmap_position.x + bitmap.width) < rect.getPosition().x || (bitmap_position.y + bitmap.height) < rect.getPosition().y)))) 
+				{
+					return;
+				}
+		if(DSX < 0)
+		{
+			SSX = -DSX;
+			DSX = 0;
+		}
+		if(DSX < rect.getPosition().x)
+		{
+			SSX += (rect.getPosition().x - DSX);
+			DSX += (rect.getPosition().x - DSX);
+		}
+		if(DSY < 0)
+		{
+			SSY = -DSY;
+			DSY = 0;
+		}
+		if(DSY < rect.getPosition().y)
+		{
+			SSY += (rect.getPosition().y - DSY);
+			DSY += (rect.getPosition().y - DSY);
+		}
+		//DSX,DSY,SSX,SSY ready
+		if(DEX > this.width)
+		{
+			SEX = (DEX - this.width);
+			DEX = this.width;
+		}
+		if(DEX > (rect.getPosition().x + rect.getSize().x))
+		{
+			int Deff = DEX - (rect.getPosition().x + rect.getSize().x);
+			SEX -= Deff;
+			DEX -= Deff;
+		}
+		if(DEY > this.height)
+		{
+			SEY = (DEY - this.height);
+			DEY = this.height;
+		}
+		if(DEY > (rect.getPosition().y + rect.getSize().y))
+		{
+			int Deff = DEY - (rect.getPosition().y + rect.getSize().y);
+			SEY -= Deff;
+			DEY -= Deff;
+		}
+		
+		
+		
+		/*System.out.println(
+				"POX="+bitmap_position.x+
+				"POY="+bitmap_position.y+
+				"SSX=" + SSX +
+				"SSY=" + SSY +
+				"SEX=" + SEX +
+				"SEY=" + SEY +
+				"DSX=" + DSX +
+				"DSY=" + DSY +
+				"DEX=" + DEX +
+				"DEY=" + DEY +
+				"OSX=" + (((DEX < SEX)?DEX:SEX) - ((DSX > SSX)?DSX:SSX)) +
+				"OSY=" + (((DEY < SEY)?DEY:SEY) - ((DSY > SSY)?DSY:SSY))
+				);*/
+		//all ready
+		for(int dst_y = DSY,src_y = SSY;dst_y < DEY && src_y < SEY;dst_y++,src_y++)
+		{
+			for(int dst_x = DSX,src_x = SSX;dst_x < DEX && src_x < SEX;dst_x++,src_x++)
+			{
+				int dst_i = (dst_x + (dst_y * this.width)) * 3;
+				int src_i = (src_x + (src_y * bitmap.width)) * 3;
+				this.buffer[dst_i    ] = bitmap.buffer[src_i    ];
+				this.buffer[dst_i + 1] = bitmap.buffer[src_i + 1];
+				this.buffer[dst_i + 2] = bitmap.buffer[src_i + 2];
 			}
 		}
 		
